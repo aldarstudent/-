@@ -1,1 +1,117 @@
+#include <iostream>
+#include <string>
+#include <algorithm>
+#include <iterator>
+#include <vector>
+#include <map>
 
+using namespace std;
+
+class Person {
+public:
+    Person (const string& first_name, const string& last_name, int year) {
+        events[year].first = first_name;
+        events[year].second = last_name;
+        year_birth = year;
+    }
+    void ChangeFirstName(int year, const string& first_name) {
+        if (year >= year_birth)
+            events[year].first = first_name;
+    }
+    void ChangeLastName(int year, const string& last_name) {
+        if (year >= year_birth)
+            events[year].second = last_name;
+    }
+    string GetFullName(int year) const {
+        if (events.empty() || year < (*events.begin()).first) {
+            return "No person";
+        }
+        string CurName = "", CurLast = "";
+
+        for (const auto& i : events) {
+            if (i.first <= year && i.second.first != "") {
+                CurName = i.second.first;
+            }
+            if (i.first <= year && i.second.second != "") {
+                CurLast = i.second.second;
+            }
+        }
+        if (CurName == "") {
+            return CurLast + " with unknown first name";
+        } else if (CurLast == "") {
+            return CurName + " with unknown last name";
+        } else {
+            return CurName + " " + CurLast;
+        }
+    }
+    string GetFullNameWithHistory(int year) const {
+        string CurName, CurLast;
+        vector<string> names, last;
+        if (events.empty() || year < (*events.begin()).first) {
+            return "No person";
+        }
+        // for names
+        for (const auto &i : events) {
+            if (i.first <= year && i.second.first != "") {
+                if (i.second.first != CurName && CurName != "") {
+                    names.push_back(CurName);
+                }
+                CurName = i.second.first;
+            }
+        }
+        // for surnames
+        for (const auto &i : events) {
+            if (i.first <= year && i.second.second != "") {
+                if (i.second.second != CurLast && CurLast != "") {
+                    last.push_back(CurLast);
+                }
+                CurLast = i.second.second;
+            }
+        }
+        string n_res, s_res;
+        if (!last.empty()) {
+            s_res += " (" + last[last.size() - 1];
+            if (last.size() > 1) {
+                for (int i = last.size() - 1; i > 0; --i) {
+                    s_res += ", " + last[i - 1];
+                }
+            }
+            s_res += ")";
+        }
+        if (!names.empty()) {
+            n_res += " (" + names[names.size() - 1];
+            if (names.size() > 1) {
+                for (int i = names.size() - 1; i > 0; --i) {
+                    n_res += ", " + names[i - 1];
+                }
+            }
+            n_res += ")";
+        }
+        if (CurName == "") {
+            return CurLast + s_res + " with unknown first name";
+        } else if (CurLast == "") {
+            return CurName + n_res + " with unknown last name";
+        } else {
+            return CurName + n_res + " " + CurLast + s_res ;
+        }
+    }
+
+private:
+    map<int, pair<string, string>> events;
+    int year_birth;
+};
+
+int main() {
+    Person person("Polina", "Sergeeva", 1960);
+    for (int year : {1959, 1960}) {
+        cout << person.GetFullNameWithHistory(year) << endl;
+    }
+
+    person.ChangeFirstName(1965, "Appolinaria");
+    person.ChangeLastName(1967, "Ivanova");
+    for (int year : {1965, 1967}) {
+        cout << person.GetFullNameWithHistory(year) << endl;
+    }
+
+    return 0;
+}
